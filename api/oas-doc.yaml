@@ -1,0 +1,154 @@
+openapi: 3.0.0
+info:
+  description: >-
+    API que permite el acceso simplificado a las acciones de Smart Contracts
+    sobre blockchain para actividades de compliance tales como: registraci├│n de
+    hashes de documentos firmados, obtenci├│n de informaci├│n sobre estos
+    documentos y baja l├│gica de los mismos
+  version: 1.0.0
+  title: Bloqfence Ethereum Blockchain API
+  contact:
+    email: correo.oke@gmail.com
+tags:
+  - name: documents
+    description: Gesti├│n de documentos
+    externalDocs:
+      description: M├ís en
+      url: 'https://github.com/correooke/blockfence.ethereum'
+paths:
+  /documents:
+    post:
+      tags:
+        - documents
+      summary: Registro de hash y datos de documento en Ethereum
+      description: ''
+      operationId: addDocument
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Document'
+        description: Datos del documento que se va a agregar a la blockchain
+        required: true
+      responses:
+        '200':
+          description: Operaci├│n exitosa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignedDocument'
+        '405':
+          description: Invalid input
+  '/documents/{hashCode}':
+    delete:
+      tags:
+        - documents
+      summary: Baja l├│gica de un documento
+      description: ''
+      operationId: deleteDocument
+      parameters:
+        - name: hashCode
+          in: path
+          description: Hash del archivo a localizar
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Baja l├│gica aplicada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignedDocument'
+        '404':
+          description: Documento no encontrado
+        '405':
+          description: Error de validaci├│n
+    get:
+      tags:
+        - documents
+      summary: Obtiene informaci├│n de un documento en base al hash
+      description: >-
+        Retorna informaci├│n o estado de registro en caso de a├║n no haberse
+        incoporado a la blockchain de Ethereum
+      operationId: getDocumentByHash
+      parameters:
+        - name: hashCode
+          in: path
+          description: Hash del archivo a localizar
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Documento encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignedDocument'
+        '404':
+          description: Documento no encontrado
+externalDocs:
+  description: Conozca m├ís sobre Bloqfence Api
+  url: 'https://www.bloqfence.com/site/index.html#/bfApi'
+servers:
+  - url: 'https://api.bloqfence.ethereum/v1'
+  - url: 'http://api.bloqfence.ethereum/v1'
+components:
+  schemas:
+    Document:
+      type: object
+      properties:
+        fileHash:
+          type: string
+          description: hash del archivo
+        fileName:
+          type: string
+          description: nombre del archivo
+        extraInfo:
+          type: string
+          description: informaci├│n adicional
+        owner:
+          $ref: '#/components/schemas/Owner'
+        signers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Signer'
+    Owner:
+      type: object
+      description: Propietario del documento
+      properties:
+        nickName:
+          type: string
+          description: Identificaci├│n del usuario en el sistema
+        publicKey:
+          type: string
+          description: clave p├║blica
+        privateKey:
+          type: string
+          description: clave privada
+    Signer:
+      type: object
+      description: Firmante del documento
+      properties:
+        publicKey:
+          type: string
+          description: clave p├║blica
+        privateKey:
+          type: string
+          description: clave privada
+    SignedDocument:
+      type: object
+      description: Documento firmado
+      properties:
+        document:
+          $ref: '#/components/schemas/Document'
+        signedHash:
+          type: string
+          description: hash firmado del documento
+        status:
+          type: string
+          enum:
+            - pending
+            - approved
+            - confirmed
